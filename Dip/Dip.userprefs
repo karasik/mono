@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Dip/LDA.cs">
+    <Files>
+      <File FileName="Dip/Program.cs" Line="29" Column="1" />
+      <File FileName="Dip/LDA.cs" Line="118" Column="5" />
+      <File FileName="Dip/TweetProcessor.cs" Line="56" Column="30" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
