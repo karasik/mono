@@ -66,8 +66,6 @@ namespace Dip
 				intToWordMap [pair.Value] = pair.Key;
 			}
 
-
-
 			alpha = 50.0 / topicCount;
 			beta = 1e-2;
 		}
@@ -79,19 +77,18 @@ namespace Dip
 				return;
 			}
 
-
 			int[,] documentTopicCount = new int[documentCount, topicCount];
 			int[,] topicTermCount = new int[topicCount, termCount];
 			int[] termTopicAssignment = new int[termCount];
 			int[] topicTermSum = new int[topicCount];
 
 			// Initialization
-			Random r = new Random (1488);
+			Random r = new Random ();
 			for (int document=0; document<documentCount; document++)
 			{
 				for (int term=0; term<documents[document].Length; term++)
 				{
-					// Sample multinomial 1/K
+					// Sample multinomial 1/K.
 					int topic = r.Next (topicCount);
 					Console.WriteLine ("Initially sampled topic {0} for word {1}", topic, documents[document][term]);
 
@@ -118,6 +115,7 @@ namespace Dip
 
 						// Sample topic.
 						int newTopic = sampleTopic (r, documentTopicCount, topicTermCount, topicTermSum, document, term);
+
 						// Increment.
 						termTopicAssignment [documents [document] [term]] = newTopic;
 						documentTopicCount [document, newTopic]++;
@@ -137,6 +135,7 @@ namespace Dip
 				prob [topic] = (topicTermCount [topic, documents [document][term]] + beta)
 						/ (topicTermSum[topic] + beta)
 						* (documentTopicCount[document, topic] + alpha);
+
 
 				sum += prob [topic];
 			}
