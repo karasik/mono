@@ -36,7 +36,9 @@ namespace Dip
 			Console.WriteLine ("There are {0} tweets.", data.Count);
 			var l = new LDA (data, 10);
 			Console.WriteLine ("Starting inference...");
-			l.Inference (200);
+
+			l.Inference (500);
+
 			Console.WriteLine ("Done!");
 
 		}

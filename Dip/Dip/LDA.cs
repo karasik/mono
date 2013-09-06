@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Diagnostics;
 
 namespace Dip
 {
@@ -70,6 +71,7 @@ namespace Dip
 			beta = 1e-2;
 		}
 
+
 		public void Inference(int iterationCount)
 		{
 			if (inferenced) 
@@ -79,20 +81,23 @@ namespace Dip
 
 			int[,] documentTopicCount = new int[documentCount, topicCount];
 			int[,] topicTermCount = new int[topicCount, termCount];
-			int[] termTopicAssignment = new int[termCount];
+			int[][] termTopicAssignment = new int[documents.Length][];
+			for (int document=0; document<documents.Length; document++)
+			{
+				termTopicAssignment [document] = new int[documents [document].Length];
+			}
 			int[] topicTermSum = new int[topicCount];
 
 			// Initialization
-			Random r = new Random ();
+			Random r = new Random (12345);
 			for (int document=0; document<documentCount; document++)
 			{
 				for (int term=0; term<documents[document].Length; term++)
 				{
 					// Sample multinomial 1/K.
 					int topic = r.Next (topicCount);
-					Console.WriteLine ("Initially sampled topic {0} for word {1}", topic, documents[document][term]);
 
-					termTopicAssignment [documents [document] [term]] = topic;
+					termTopicAssignment [document] [term] = topic;
 					documentTopicCount [document, topic]++;
 					topicTermCount [topic, documents[document][term]]++;
 					topicTermSum [topic]++;
@@ -107,7 +112,7 @@ namespace Dip
 				{
 					for (int term=0; term<documents[document].Length; term++) 
 					{
-						int topic = termTopicAssignment [documents [document] [term]];
+						int topic = termTopicAssignment [document] [term];
 						// Decrement.
 						documentTopicCount [document, topic]--;
 						topicTermCount [topic, documents[document][term]]--;
@@ -117,13 +122,46 @@ namespace Dip
 						int newTopic = sampleTopic (r, documentTopicCount, topicTermCount, topicTermSum, document, term);
 
 						// Increment.
-						termTopicAssignment [documents [document] [term]] = newTopic;
+						termTopicAssignment [document] [term] = newTopic;
 						documentTopicCount [document, newTopic]++;
 						topicTermCount [newTopic, documents[document][term]]++;
 						topicTermSum [newTopic]++;
 					}
 				}
 			}
+
+			// Perform read out.
+			// Phi[topic][term]
+			for (int topic=0; topic<topicCount; topic++)
+			{
+				double sum = 0;
+				for (int term=0; term<termCount; term++)
+				{
+					phi [topic, term] = (topicTermCount [topic, term] + beta);
+					sum += phi [topic, term];
+				}
+				for (int term=0; term<termCount; term++)
+				{
+					phi [topic, term] /= sum;
+				}
+			}
+
+			// Theta[document][topic]
+			for (int document=0; document<documentCount; document++)
+			{
+				double sum = 0;
+				for (int topic=0; topic<topicCount; topic++)
+				{
+					theta[document, topic] = (documentTopicCount[document, topic] + alpha);
+					sum += theta [document, topic];
+				}
+				for (int topic=0; topic<topicCount; topic++)
+				{
+					theta [document, topic] /= sum;
+				}
+			}
+
+			inferenced = true;
 		}
 		
 		private int sampleTopic (Random r, int[,] documentTopicCount, int[,] topicTermCount, int[] topicTermSum, int document, int term)
@@ -136,8 +174,8 @@ namespace Dip
 						/ (topicTermSum[topic] + beta)
 						* (documentTopicCount[document, topic] + alpha);
 
-
 				sum += prob [topic];
+				Debug.Assert (prob [topic] >= 0);
 			}
 
 			// Sample topic according to distribution.
@@ -147,13 +185,11 @@ namespace Dip
 			{
 				if (d >= accumulator && d < accumulator + prob[topic])
 				{
-					Console.WriteLine ("Sampled topic {0} for word {1}", topic, intToWordMap[documents[document][term]]);
 					return topic;
 				}
 				accumulator += prob [topic];
 			}
 
-			Console.WriteLine ("Total: {0}", accumulator);
 			throw new ApplicationException("Wrong topic sampling in LDA.sampleTopic");
 		}
 	}
