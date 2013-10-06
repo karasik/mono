@@ -1,6 +1,7 @@
 using Dip.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dip
 {
@@ -32,12 +33,25 @@ namespace Dip
 			*/
 
 			var data = TweetProcessor.GetDataFromText ("../../data/DisasterTweets.txt");
+			int topicCount = 50;
+			int topTermsCount = 10;
 
 			Console.WriteLine ("There are {0} tweets.", data.Count);
-			var l = new LDA (data, 10);
+			var l = new LDA (data, topicCount);
 			Console.WriteLine ("Starting inference...");
 
 			l.Inference (500);
+
+			for (int topic=0; topic<topicCount; topic++)
+			{
+				Console.WriteLine ("{0}:", topic);
+				string[] ret = l.GetTopTermsForTopic (topic, topTermsCount);
+				foreach (var s in ret) {
+					Console.Write ("{0} ", s);
+				}
+				Console.WriteLine ();
+			}
+
 
 			Console.WriteLine ("Done!");
 

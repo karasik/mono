@@ -192,5 +192,28 @@ namespace Dip
 
 			throw new ApplicationException("Wrong topic sampling in LDA.sampleTopic");
 		}
+
+		public String[] GetTopTermsForTopic(int topic, int topTermsCount)
+		{
+			Aux[] terms = new Aux[termCount];
+			for (int term=0; term<termCount; term++)
+			{
+				terms [term] = new Aux(phi [topic, term], term);
+			}
+
+			return terms.OrderByDescending(x => x.Prob).Take(topTermsCount).Select(x => intToWordMap[x.Term]).ToArray();
+		}
+
+		class Aux
+		{
+			public double Prob;
+			public int Term;
+			public Aux(double prob, int term)
+			{
+				Prob = prob;
+				Term = term;
+			}
+		}
+
 	}
 }
