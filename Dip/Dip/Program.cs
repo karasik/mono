@@ -33,7 +33,7 @@ namespace Dip
 			*/
 
 			var data = TweetProcessor.GetDataFromText ("../../data/DisasterTweets.txt");
-			int topicCount = 50;
+			int topicCount = 10;
 			int topTermsCount = 10;
 
 			Console.WriteLine ("There are {0} tweets.", data.Count);
