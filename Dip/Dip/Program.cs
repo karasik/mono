@@ -33,14 +33,14 @@ namespace Dip
 			*/
 
 			var data = TweetProcessor.GetDataFromText ("../../data/DisasterTweets.txt");
-			int topicCount = 10;
-			int topTermsCount = 10;
+			int topicCount = 20;
+			int topTermsCount = 15;
 
 			Console.WriteLine ("There are {0} tweets.", data.Count);
 			var l = new LDA (data, topicCount);
 			Console.WriteLine ("Starting inference...");
 
-			l.Inference (500);
+			l.Inference (500, 100, 10);
 
 			for (int topic=0; topic<topicCount; topic++)
 			{

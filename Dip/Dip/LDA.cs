@@ -69,10 +69,13 @@ namespace Dip
 
 			alpha = 50.0 / topicCount;
 			beta = 1e-2;
+
+			theta = new double[documentCount, topicCount];
+			phi = new double[topicCount, termCount];
 		}
 
 
-		public void Inference(int iterationCount)
+		public void Inference(int iterationsBeforeConvergence, int iterationsPerReadOut, int numberOfReadOuts)
 		{
 			if (inferenced) 
 			{
@@ -82,6 +85,9 @@ namespace Dip
 			int[,] documentTopicCount = new int[documentCount, topicCount];
 			int[,] topicTermCount = new int[topicCount, termCount];
 			int[][] termTopicAssignment = new int[documents.Length][];
+			double[,] accumTheta = new double[documentCount, topicCount];
+			double[,] accumPhi = new double[topicCount, termCount];
+
 			for (int document=0; document<documents.Length; document++)
 			{
 				termTopicAssignment [document] = new int[documents [document].Length];
@@ -89,7 +95,7 @@ namespace Dip
 			int[] topicTermSum = new int[topicCount];
 
 			// Initialization
-			Random r = new Random (12345);
+			Random r = new Random ();
 			for (int document=0; document<documentCount; document++)
 			{
 				for (int term=0; term<documents[document].Length; term++)
@@ -104,9 +110,9 @@ namespace Dip
 				}
 			}
 
-			theta = new double[documentCount, topicCount];
-			phi = new double[topicCount, termCount];
-			for (int iteration=1; iteration<=iterationCount; iteration++) 
+			int totalIterations = iterationsBeforeConvergence + iterationsPerReadOut * numberOfReadOuts;
+
+			for (int iteration=1; iteration<=totalIterations; iteration++)
 			{
 				for (int document=0; document<documentCount; document++) 
 				{
@@ -128,36 +134,60 @@ namespace Dip
 						topicTermSum [newTopic]++;
 					}
 				}
+
+				if ((iteration - iterationsBeforeConvergence) % iterationsPerReadOut == iterationsPerReadOut - 1)
+				{
+					// Perform read out.
+					// Phi[topic][term]
+					for (int topic=0; topic<topicCount; topic++)
+					{
+						double sum = 0;
+						for (int term=0; term<termCount; term++)
+						{
+							phi [topic, term] = (topicTermCount [topic, term] + beta);
+							sum += phi [topic, term];
+						}
+						for (int term=0; term<termCount; term++)
+						{
+							accumPhi [topic, term]  += phi[topic, term] / sum;
+						}
+					}
+
+					// Theta[document][topic]
+					for (int document=0; document<documentCount; document++)
+					{
+						double sum = 0;
+						for (int topic=0; topic<topicCount; topic++)
+						{
+							theta[document, topic] = (documentTopicCount[document, topic] + alpha);
+							sum += theta [document, topic];
+						}
+						for (int topic=0; topic<topicCount; topic++)
+						{
+							accumTheta [document, topic] += theta[document, topic] / sum;
+						}
+					}
+
+					Console.Write (".");
+				}
 			}
 
 			// Perform read out.
 			// Phi[topic][term]
 			for (int topic=0; topic<topicCount; topic++)
 			{
-				double sum = 0;
 				for (int term=0; term<termCount; term++)
 				{
-					phi [topic, term] = (topicTermCount [topic, term] + beta);
-					sum += phi [topic, term];
-				}
-				for (int term=0; term<termCount; term++)
-				{
-					phi [topic, term] /= sum;
+					phi [topic, term] = accumPhi [topic, term] / numberOfReadOuts;
 				}
 			}
 
 			// Theta[document][topic]
 			for (int document=0; document<documentCount; document++)
 			{
-				double sum = 0;
 				for (int topic=0; topic<topicCount; topic++)
 				{
-					theta[document, topic] = (documentTopicCount[document, topic] + alpha);
-					sum += theta [document, topic];
-				}
-				for (int topic=0; topic<topicCount; topic++)
-				{
-					theta [document, topic] /= sum;
+					theta [document, topic] = accumTheta [document, topic] / numberOfReadOuts;
 				}
 			}
 
